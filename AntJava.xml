@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+
+<project name="AntJavaProject" default="info" basedir=".">
+	
+	<description>	Create a Java Project (JAR) with Ant build script	</description>
+	
+	<property name="projectName" value="DateUtils" />
+	
+	<!-- set global properties for this build -->
+	<property name="javaSourceFiles" location="src"/>
+	<property name="classBinaryFiles" location="bin"/>
+	<property name="classpath" location="lib"/>
+	<property name="testpakageName" location="${classBinaryFiles}/in/jenkins/test"/>
+
+	<!-- Output, Jar -->
+	<property name="dist.dir" location="dist" />
+	
+	<target name="info">
+		<echo>
+=======================================================================
+Simple Information
+=======================================================================
+		</echo>
+	</target>
+	
+	<!-- First Cleare the classes folder
+Delete	Deletes either a single file or all files in a specified directory and its sub-directories.
+ -->
+	<target name="clean" depends="info">
+		<!-- Create the time stamp -->
+		<tstamp />
+		<delete dir="${classBinaryFiles}" />
+		<echo>
+=======================================================================
+Deleted bin folder : ${classBinaryFiles}
+=======================================================================
+		</echo>
+	</target>
+	<!-- Create bin folder to place .class files
+	Mkdir	Makes a directory|Folder. -->
+	<target name="prepare" depends="clean">
+		<!-- Create the time stamp -->
+		<tstamp />
+		<mkdir dir="${classBinaryFiles}" />
+		<echo>
+=======================================================================
+created bin folder : ${classBinaryFiles}
+=======================================================================
+		</echo>
+	</target>
+	
+	<target name="compile" depends="prepare">
+		<javac srcdir="${javaSourceFiles}"
+           destdir="${classBinaryFiles}"
+           classpath="${classpath}"
+           debug="on"
+           deprecation="off"
+           optimize="on" >
+      <include name="**/MainClass.java"/>
+    </javac>
+		<echo>
+=======================================================================
+ .java files compiled and plcaed here: 
+=======================================================================
+		</echo>
+	</target>
+	
+	<target name="dist" depends="compile" description="package, output to JAR">
+		<mkdir dir="${dist.dir}" />
+		<jar jarfile="${dist.dir}/${projectName}-${DSTAMP}.jar" basedir="${classBinaryFiles}">
+		  <manifest>
+			<attribute name="Main-Class" value="in.jenkins.test.MainClass" />
+		  </manifest>
+		</jar>
+	</target>
+	
+	<target name="runmain_method" depends="compile" description="Run main method">
+		<java fork="true" failonerror="yes" classname="**/MainClass.class">
+			<arg line="admin@test.com"/>
+		</java>
+	</target>
+	
+	
+</project>

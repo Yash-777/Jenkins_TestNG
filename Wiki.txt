@@ -1,0 +1,23 @@
+Batch file:
+	set classpath=bin;lib\*;
+	java org.testng.TestNG testng.xml
+	
+	java -cp bin;lib/* org.testng.TestNG testng.xml
+
+Code Structure:
+	ProjectName
+		bin/.class files
+		lib/.jar files
+		
+https://mvnrepository.com/artifact/org.testng/testng/6.9.10
+
+
+=========== https://www.softwaretestingmaterial.com/execute-testng-tests-using-jenkins/
+
+Under General Tab, you could see ‘TestNGProject‘. Click on ‘Advanced‘ button to add the custom workspace.
+
+Now select the ‘Use Custom Workspace‘ checkbox and enter the path of your workspace.
+My workspace is available at this location ‘D:\DeleteNow\TestNGProject‘
+
+
+https://jenkins.io/doc/book/managing/cli/

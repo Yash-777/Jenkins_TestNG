@@ -1,0 +1,11 @@
+# Eclipse
+#.settings
+#.project
+#.classpath
+
+lib/
+bin/
+
+target/
+test-output/
+test-output-tests/

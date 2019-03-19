@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<project name="Jenkins_TestNG" default="testng-test" basedir=".">
+	<!-- ANT -  -->
+	<description>	Create a Java Project (JAR) with Ant build script	</description>
+	
+	<!-- set global properties for this build -->
+	<property name="jdk.version" value="1.7"/>
+	
+	<!-- We don't want to immediately fail the build if the tests fail, use yes otherwise no -->
+	<property name="haltonfailure" value="no"/>
+	
+	<!-- Project Structure -->
+	<property name="javaSourceFiles" location="src"/>
+	<property name="classBinaryFiles" location="bin"/>
+	<property name="classpath" location="lib"/>
+
+	<property name="package" location="in.jenkins.test"/>
+
+	<!-- Output, Jar -->
+	<property name="dist.dir" location="dist" />
+	<property name="testng.out" location="test-output" />
+	<property name="junit.out" location="junit-output" />
+	
+	<!-- Eclipse Library Jar's -->
+	<path id="eclipse.library">
+		<pathelement location="${ECLIPSE_HOME}/plugins/org.testng.eclipse_6.9.12.201607091356/lib/testng.jar"/>
+		<pathelement location="${ECLIPSE_HOME}/plugins/org.testng.eclipse_6.9.12.201607091356/lib/jcommander.jar"/>
+		<pathelement location="${ECLIPSE_HOME}/plugins/org.testng.eclipse_6.9.12.201607091356/lib/bsh-2.0b4.jar"/>
+		<pathelement location="${ECLIPSE_HOME}/plugins/org.testng.eclipse_6.9.12.201607091356/lib/snakeyaml.jar"/>
+		
+		<pathelement location="${ECLIPSE_HOME}/plugins/org.junit_3.8.2.v3_8_2_v20100427-1100/junit.jar"/>
+	</path>
+	
+	<path id="project.classpath">
+		<pathelement location="bin"/>
+		
+		<path refid="eclipse.library"/>
+		
+			<!-- Add library plugins(.jar's) to classpath of project -->
+			<fileset dir="lib">
+				<include name="**/*.jar"/>
+				<exclude name="**/*mongo.jar"/>
+			</fileset>
+	</path>
+	
+	<target name="info">
+		<echo>
+=======================================================================
+Simple Information
+=======================================================================
+		</echo>
+	</target>
+	
+<!-- 
+First Cleare the classes folder by deleting all files in a specified directory and its sub-directories.
+ -->
+	<target name="clean" depends="info">
+		<!-- Create the time stamp -->
+		<tstamp />
+		<delete dir="${classBinaryFiles}" />
+		<echo>
+=======================================================================
+Deleted bin folder : ${classBinaryFiles}
+=======================================================================
+		</echo>
+	</target>
+	
+<!-- 
+Create bin folder to place .class, .properties files.
+Mkdir	Makes a directory|Folder.
+-->
+	<target name="prepare" depends="clean">
+		<tstamp />
+		<mkdir dir="${classBinaryFiles}" />
+		
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="src">
+				<exclude name="**/*.java"/>
+			</fileset>
+		</copy>
+		<echo>
+=======================================================================
+created bin folder : ${classBinaryFiles}
+=======================================================================
+		</echo>
+	</target>
+	
+	<!-- Compile Java source from ${src.dir} and output it to ${bin.dir} -->
+	<target name="compile" depends="prepare">
+		<javac debug="true" destdir="bin" includeantruntime="false" source="${jdk.version}" target="${jdk.version}">
+			<src path="src"/>
+			<classpath refid="project.classpath"/>
+			<include name="**/*.java"/>
+		</javac>
+		<echo>
+=======================================================================
+ .java files compiled and plcaed here: 
+=======================================================================
+		</echo>
+	</target>
+	
+	<target name="sleep">
+		<echo message="Sleeping for a while so you can see the build in the new dashboard [Jenkins]" />
+		<sleep seconds="2" />
+	</target>
+	
+	<!-- Run TestNG -->
+	<taskdef resource="testngtasks" classpathref="project.classpath"/>
+	<target name="testng-test" description="run all testng tests" depends="compile">
+		<echo message="-----------------------------------"/>
+		<echo message="TestNG          : http://testng.org/doc/index.html"/>
+		<echo message="TestNG with ant : http://testng.org/doc/ant.html"/>
+		<echo message="-----------------------------------"/>
+		
+		<property name="myprop1" value="value 1"/>
+		<property name="myprop2" value="value 2"/>
+		
+		<propertyset id="propset1">
+			<propertyref name="myprop1"/>
+			<propertyref name="myprop2"/>
+		</propertyset>
+		
+		<testng classpathref="project.classpath" outputDir="${testng.out}" haltOnFailure="${haltonfailure}" verbose="2" parallel="methods" threadcount="50">
+			<!-- Tell Ant that testng.xml is available in Current folder -->
+			<xmlfileset dir="." includes="testng.xml"/>
+			<propertyset refid="propset1"/>
+		</testng>
+	
+	</target>
+
+	<!-- Run JUnit -->
+	<target name="junit-test" description="run all junit tests" depends="compile">
+		<mkdir dir="${junit.out}"/>
+		<junit printsummary="yes" haltonfailure="${haltonfailure}">
+			<classpath refid="${package}"/>
+			<formatter type="xml"/>
+			<batchtest fork="yes" todir="${junit.out}">
+				<fileset dir="${javaSourceFiles}">
+					<include name="**/*JUnit.java"/>
+				</fileset>
+			</batchtest>
+		</junit>
+		
+		<!-- <junitreport todir="${junit.out}">
+			<fileset dir="${junit.out}">
+				<include name="TEST-*.xml"/>
+			</fileset>
+			<report todir="${junit.out}" format="frames"/>
+		</junitreport> -->
+	</target>
+	
+	<target name="test_junit" depends="compile">
+        <mkdir dir="target/test-classes"/>
+        <javac srcdir="test" destdir="target/test-classes">
+            <classpath>
+                <pathelement location="target/classes"/>
+                <pathelement location="lib/junit.jar"/>
+            </classpath>
+        </javac>
+
+        <mkdir dir="target/test-results"/>
+        <junit haltonfailure="no" printsummary="on">
+            <classpath >
+                <pathelement location="target/classes"/>
+                <pathelement location="lib/junit.jar"/>
+                <pathelement location="target/test-classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <formatter type="xml" />
+            <batchtest todir="target/test-results" >
+                <fileset dir="target/test-classes" includes="**/*Test.class"/>
+            </batchtest>
+        </junit>
+    </target>
+    
+	<!-- Run Java Main Method -->
+	<target name="runmain_method" depends="compile" description="Run main method">
+		<!-- <java classname="in.jenkins.test.MainClass">
+        <classpath>
+           <pathelement location="${classBinaryFiles}"/>
+        </classpath>
+        <arg value="parameter" />
+    </java> -->
+		
+		<java classname="${package}.MainClass" >
+			
+			<arg line="admin@test.com"/>
+			<classpath>
+				<pathelement path="${classBinaryFiles}"/>
+			</classpath>
+		</java>
+	</target>
+	
+	<target name="dist-runnable" depends="compile" description="package, output to JAR">
+		<mkdir dir="${dist.dir}" />
+		<jar jarfile="${dist.dir}/${projectName}-${DSTAMP}.jar" basedir="${classBinaryFiles}">
+			<!-- manifest tag will set your main class for execution -->
+			<manifest>
+				<attribute name="Main-Class" value="in.jenkins.test.MainClass" />
+			</manifest>
+		</jar>
+	</target>
+	
+	<target name="jar" depends="compile">
+		<jar jarfile="${dist.dir}/${projectName}-${DSTAMP}.jar" basedir="${classBinaryFiles}"/>
+	</target>
+	
+	<!-- Creates Javadoc -->
+	<target name="docs" depends="compile">
+		<javadoc packagenames="src" sourcepath="src" destdir="target/docs">
+		<!-- Define which files / directory should get included, we include all -->
+		<fileset dir="src">
+			<include name="**" />
+		</fileset>
+		</javadoc>
+	</target>
+	<!-- ==================================================================================== -->
+	<!-- <project default="war" basedir=".">
+		<property name="tomcat" value="D:\objectspy\apache-tomcat-7.0.37"/>
+		<property name="tomcat.deployment" value="${tomcat}/webapps"/>
+		<property name="tomcat.bin" value="${tomcat}/bin"/>
+		<property name="base" value="."/>
+		<property name="src" value="${base}/src"/>
+		
+		<path id="compile.classpath">
+		<fileset dir="WebContent/WEB-INF/lib">
+			<include name="*.jar"/>
+		</fileset>		
+	</path>
+	
+	<target name="init">
+		<mkdir dir="build/classes"/>
+		<mkdir dir="dist" />
+	</target>
+	
+	<target name="compile" depends="init" >
+		<javac includeantruntime="false" destdir="build/classes" debug="true" srcdir="src">						
+			<classpath refid="compile.classpath"/>
+		</javac>
+		<copy todir="build/classes">
+				<fileset dir="src">
+					<include name="**/*.properties"/>
+				</fileset>
+		</copy>
+	</target>
+	
+	
+	<target name="war" depends="compile">
+	<war destfile="dist/ObjectSpyWeb.war" webxml="WebContent/WEB-INF/web.xml">
+		<fileset dir="WebContent"/>			
+		<lib dir="WebContent/WEB-INF/lib"/>
+		<classes dir="build/classes"/>			
+	</war>		
+		<antcall target="deploy"/>
+	</target>
+	deploy
+	<target name="deploy">
+		<copy file="dist/ObjectSpyWeb.war" todir="${tomcat.deployment}"/>
+		<antcall target="startTomcat"/>
+	</target>
+	<target name="startTomcat">
+		<echo>${env.TOMCAT_HOME}</echo>
+		<exec executable="${tomcat.bin}/startup.bat">
+			<env key="CATALINA_HOME" value="${tomcat}"/>
+		</exec>
+	</target>
+	<target name="stopTomcat">
+		<exec executable="${tomcat.bin}/shutdown.sh">
+			<env key="CATALINA_HOME" value="${tomcat}"/>
+		</exec>
+	</target> -->
+	<!-- ==================================================================================== -->
+	
+</project>

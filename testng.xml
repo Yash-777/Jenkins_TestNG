@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Suite"> <!--  -->
+  <test name="FireFox">
+    
+    <parameter name="value1" value="11" />
+    <parameter name="value2" value="22" />
+    <parameter name="URL" value="http://www.w3schools.com/" />
+   
+    <classes>
+      <class name="in.jenkins.test.FireFox_TestNG"/>
+    </classes>
+  </test> <!-- Test -->
+  <!-- <test name="Chrome">
+      
+  </test> -->
+</suite> <!-- Suite Root Tag -->
